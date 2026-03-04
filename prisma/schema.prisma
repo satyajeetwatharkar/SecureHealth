@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DOCTOR
+  RECEPTIONIST
+  PATIENT
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role      @default(PATIENT)
+  
+  // Relations
+  patientRecords   MedicalRecord[] @relation("PatientRecords")
+  doctorRecords    MedicalRecord[] @relation("DoctorRecords")
+  appointmentsAsPatient Appointment[] @relation("PatientAppointments")
+  appointmentsAsDoctor  Appointment[] @relation("DoctorAppointments")
+  
+  // NextAuth required fields
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model MedicalRecord {
+  id          String   @id @default(cuid())
+  patientId   String
+  doctorId    String
+  diagnosis   String
+  prescription String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // A hash stored on-chain to verify record hasn't been tampered with
+  blockchainHash String? 
+
+  patient     User     @relation("PatientRecords", fields: [patientId], references: [id])
+  doctor      User     @relation("DoctorRecords", fields: [doctorId], references: [id])
+}
+
+model Appointment {
+  id          String   @id @default(cuid())
+  date        DateTime
+  reason      String
+  status      String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  
+  patientId   String
+  doctorId    String
+
+  patient     User     @relation("PatientAppointments", fields: [patientId], references: [id])
+  doctor      User     @relation("DoctorAppointments", fields: [doctorId], references: [id])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorId     String
+  actorRole   Role
+  action      String   // e.g., "VIEW_RECORD", "UPDATE_APPOINTMENT"
+  targetId    String   // The ID of the record/user being accessed
+  timestamp   DateTime @default(now())
+  
+  // AI Agent Analysis
+  aiFlagged   Boolean  @default(false)
+  aiReasoning String?
+}
+
+// --- NextAuth Models ---
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

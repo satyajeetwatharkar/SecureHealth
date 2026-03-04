@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: healthcare_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-securepassword123}
+      POSTGRES_DB: ${POSTGRES_DB:-healthcare_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthcare_net
+
+  # We will run the Next.js app locally for development via standard `npm run dev`
+  # rather than inside docker, for better HMR experience.
+  # This docker-compose focuses on the infrastructure dependencies.
+
+volumes:
+  postgres_data:
+
+networks:
+  healthcare_net:
+    driver: bridge
