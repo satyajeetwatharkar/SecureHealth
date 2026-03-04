@@ -1,6 +1,6 @@
 # SecureHealth: Tamper-Proof Medical Data via Blockchain & Gemini AI
 
-> ⚠️ **Note:** This project is currently in active development. Features and architecture are subject to upgrades as we scale.
+> **Note:** This project is currently in active development. Features and architecture are subject to upgrades as we scale.
 
 ### The Problem
 Traditional health records are often stored in siloed, centralized databases that are vulnerable to internal data tampering, unauthorized scraping, and silent corruption. Patients and administrators have no way to cryptographically prove that historical medical records remain unmodified over time. 
@@ -10,7 +10,7 @@ Traditional health records are often stored in siloed, centralized databases tha
 
 ---
 
-## 🛠 Technology Stack
+## Technology Stack
 *   **Frontend:** Next.js 14, React, Tailwind CSS (Vanilla styling architecture)
 *   **Backend:** Next.js Server Actions, NextAuth.js (Credentials Provider)
 *   **Database:** PostgreSQL, Prisma ORM
@@ -20,7 +20,46 @@ Traditional health records are often stored in siloed, centralized databases tha
 
 ---
 
-## 🏗 Architecture Overview
+## Architecture Overview
+
+```mermaid
+graph TD
+    User([Doctor / Admin])
+    
+    subgraph Frontend [Next.js Dashboards]
+        UI[React UI]
+        Actions[Server Actions]
+    end
+    
+    subgraph DataStorage [Primary Storage]
+        DB[(PostgreSQL)]
+        ORM(Prisma ORM)
+    end
+    
+    subgraph SecurityLayer [Security Infrastructure]
+        Blockchain[Ethereum Blockchain<br>Smart Contracts]
+        LLM[Google Gemini 2.5<br>AI Threat Detection]
+    end
+    
+    User -->|Views / Edits Data| UI
+    UI -->|API Requests| Actions
+    
+    Actions -->|Queries| ORM
+    ORM <--> DB
+    
+    Actions -->|Data Hash & Signature| Blockchain
+    Actions -->|Contextual Access Logs| LLM
+    
+    Blockchain -.->|Validation Receipt| Actions
+    LLM -.->|Anomaly Alerts| Actions
+    
+    classDef storage fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff
+    classDef security fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff
+    classDef default fill:#f8fafc,stroke:#cbd5e1,stroke-width:1px
+    
+    class DB,ORM storage
+    class Blockchain,LLM security
+```
 
 The system operates on a dual-layer strategy:
 
@@ -31,7 +70,7 @@ The system operates on a dual-layer strategy:
 
 ---
 
-## 🚀 Local Setup Instructions
+## Local Setup Instructions
 
 Follow these steps to run the platform locally from scratch.
 
@@ -82,4 +121,4 @@ npm run dev
 Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
-*Built with ❤️ to redefine data trust in the healthcare industry.*
+*Built to redefine data trust in the healthcare industry.*
